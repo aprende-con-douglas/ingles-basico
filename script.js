@@ -116,6 +116,9 @@ document.querySelectorAll('.close-modal').forEach(button => {
 if (registrationForm) {
     registrationForm.addEventListener('submit', async (e) => {
         e.preventDefault();
+        console.log("Evento 'submit' del formulario de registro disparado."); // DEP: Log
+        alert("Intentando inscribir..."); // DEP: Alerta para indicar inicio de proceso
+
         registrationMessage.textContent = 'Inscribiendo...';
         registrationMessage.className = 'text-center mt-4 text-lg font-medium text-gray-700';
 
@@ -125,9 +128,14 @@ if (registrationForm) {
         try {
             // CONVERTIMOS EL OBJETO 'data' A UNA CADENA JSON PARA ENVIARLO A APPS SCRIPT
             const jsonData = JSON.stringify(data); 
+            console.log("Datos del formulario convertidos a JSON:", jsonData); // DEP: Log de los datos JSON
+            alert("Enviando datos a Apps Script..."); // DEP: Alerta para indicar envío
 
             google.script.run
                 .withSuccessHandler(response => {
+                    console.log("Respuesta de Apps Script (Éxito):", response); // DEP: Log de respuesta exitosa
+                    alert("Inscripción exitosa (o mensaje de Apps Script): " + response.message); // DEP: Alerta de éxito/mensaje
+
                     if (response.success) {
                         registrationMessage.textContent = response.message;
                         registrationMessage.className = 'text-center mt-4 text-lg font-medium text-green-700';
@@ -139,15 +147,17 @@ if (registrationForm) {
                     }
                 })
                 .withFailureHandler(error => {
+                    console.error('Error de Apps Script (Fallo):', error); // DEP: Log de error del Apps Script
+                    alert(`Error de Apps Script: ${error.message || 'Error desconocido'}. Revisa los logs de Apps Script.`); // DEP: Alerta de error del Apps Script
                     registrationMessage.textContent = `Error al inscribirse: ${error.message || 'Error desconocido'}. Intenta de nuevo.`;
                     registrationMessage.className = 'text-center mt-4 text-lg font-medium text-red-700';
-                    console.error('Error de Apps Script:', error);
                 })
                 .registerStudent(jsonData); // Enviamos la cadena JSON
         } catch (error) {
+            console.error('Error inesperado en JavaScript:', error); // DEP: Log de errores inesperados en el JS
+            alert(`Error inesperado en JavaScript: ${error.message}.`); // DEP: Alerta de errores inesperados
             registrationMessage.textContent = `Error inesperado: ${error.message}.`;
             registrationMessage.className = 'text-center mt-4 text-lg font-medium text-red-700';
-            console.error('Error en JavaScript:', error);
         }
     });
 }
