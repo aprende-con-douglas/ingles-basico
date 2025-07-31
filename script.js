@@ -116,8 +116,9 @@ document.querySelectorAll('.close-modal').forEach(button => {
 if (registrationForm) {
     registrationForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        console.log("Evento 'submit' del formulario de registro disparado."); // DEP: Log
-        alert("Intentando inscribir..."); // DEP: Alerta para indicar inicio de proceso
+        console.log("Evento 'submit' del formulario de registro disparado.");
+        // Removida la alerta de "Intentando inscribir..." para una experiencia más fluida
+        // alert("Intentando inscribir...");
 
         registrationMessage.textContent = 'Inscribiendo...';
         registrationMessage.className = 'text-center mt-4 text-lg font-medium text-gray-700';
@@ -126,36 +127,40 @@ if (registrationForm) {
         const data = Object.fromEntries(formData.entries());
 
         try {
-            // CONVERTIMOS EL OBJETO 'data' A UNA CADENA JSON PARA ENVIARLO A APPS SCRIPT
-            const jsonData = JSON.stringify(data); 
-            console.log("Datos del formulario convertidos a JSON:", jsonData); // DEP: Log de los datos JSON
-            alert("Enviando datos a Apps Script..."); // DEP: Alerta para indicar envío
+            const jsonData = JSON.stringify(data);
+            console.log("Datos del formulario convertidos a JSON:", jsonData);
+            // Removida la alerta de "Enviando datos a Apps Script..."
+            // alert("Enviando datos a Apps Script...");
 
             google.script.run
                 .withSuccessHandler(response => {
-                    console.log("Respuesta de Apps Script (Éxito):", response); // DEP: Log de respuesta exitosa
-                    alert("Inscripción exitosa (o mensaje de Apps Script): " + response.message); // DEP: Alerta de éxito/mensaje
+                    console.log("Respuesta de Apps Script (Éxito):", response);
+                    alert("Inscripción exitosa (o mensaje de Apps Script): " + response.message); // Mantener esta alerta para feedback crucial
 
                     if (response.success) {
                         registrationMessage.textContent = response.message;
                         registrationMessage.className = 'text-center mt-4 text-lg font-medium text-green-700';
                         registrationForm.reset();
-                        setTimeout(() => hideModal(registerModal), 3000);
+                        // Después de un registro exitoso, ocultar el modal de registro y mostrar el de login
+                        setTimeout(() => {
+                            hideModal(registerModal);
+                            showModal(loginModal); // Mostrar el modal de login
+                        }, 500); // Pequeño retardo para que el mensaje sea visible
                     } else {
                         registrationMessage.textContent = response.message;
                         registrationMessage.className = 'text-center mt-4 text-lg font-medium text-red-700';
                     }
                 })
                 .withFailureHandler(error => {
-                    console.error('Error de Apps Script (Fallo):', error); // DEP: Log de error del Apps Script
-                    alert(`Error de Apps Script: ${error.message || 'Error desconocido'}. Revisa los logs de Apps Script.`); // DEP: Alerta de error del Apps Script
+                    console.error('Error de Apps Script (Fallo):', error);
+                    alert(`Error de Apps Script: ${error.message || 'Error desconocido'}. Revisa los logs de Apps Script.`);
                     registrationMessage.textContent = `Error al inscribirse: ${error.message || 'Error desconocido'}. Intenta de nuevo.`;
                     registrationMessage.className = 'text-center mt-4 text-lg font-medium text-red-700';
                 })
-                .registerStudent(jsonData); // Enviamos la cadena JSON
+                .registerStudent(jsonData);
         } catch (error) {
-            console.error('Error inesperado en JavaScript:', error); // DEP: Log de errores inesperados en el JS
-            alert(`Error inesperado en JavaScript: ${error.message}.`); // DEP: Alerta de errores inesperados
+            console.error('Error inesperado en JavaScript:', error);
+            alert(`Error inesperado en JavaScript: ${error.message}.`);
             registrationMessage.textContent = `Error inesperado: ${error.message}.`;
             registrationMessage.className = 'text-center mt-4 text-lg font-medium text-red-700';
         }
@@ -343,8 +348,8 @@ if (startQuizBtn) {
     startQuizBtn.addEventListener('click', () => {
         if (!currentUserEmail) {
             alert('Debes iniciar sesión para comenzar un quiz.');
-            hideModal(profileModal);
-            showModal(loginModal);
+            hideModal(profileModal); // Oculta el modal actual si está abierto
+            showModal(loginModal); // Muestra el modal de login si no hay usuario logueado
             return;
         }
         renderQuiz();
@@ -444,7 +449,8 @@ if (quizForm) {
     });
 }
 
-// Lógica inicial para mostrar el modal de login al cargar la página
+// NO MOSTRAR NINGÚN MODAL AL CARGAR LA PÁGINA INICIALMENTE
 window.onload = () => {
-    showModal(loginModal);
+    // No se llama a showModal aquí. La página se carga limpia.
+    // Los modales se activarán solo por interacción del usuario con los botones.
 };
