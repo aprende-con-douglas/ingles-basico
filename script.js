@@ -33,6 +33,7 @@ const logoutBtn = document.getElementById('logoutBtn');
 const startQuizBtn = document.getElementById('startQuizBtn');
 const closeQuizBtn = document.getElementById('closeQuizBtn');
 const closeResultBtn = document.getElementById('closeResultBtn');
+const returnToProfileBtn = document.getElementById('returnToProfileBtn'); // Asegurarse de que este botón también esté referenciado
 
 const registrationForm = document.getElementById('registrationForm');
 const loginForm = document.getElementById('loginForm');
@@ -54,13 +55,15 @@ const profileEmail = document.getElementById('profileEmail');
 
 let currentUserEmail = null; // Variable para almacenar el correo del usuario logueado
 
-// Event Listeners para botones y formularios
+// Event Listeners para botones que abren modales desde la navegación principal
 if (registerBtn) {
     registerBtn.addEventListener('click', () => showModal(registerModal));
 }
 if (loginBtn) {
     loginBtn.addEventListener('click', () => showModal(loginModal));
 }
+
+// Event Listeners para botones dentro de modales que cambian a otros modales
 if (forgotPasswordBtn) {
     forgotPasswordBtn.addEventListener('click', () => {
         hideModal(loginModal);
@@ -92,7 +95,7 @@ if (backToProfileFromChange) {
     });
 }
 
-// Botones de cierre de modal
+// Botones de cierre de modal (incluyendo los que regresan al perfil/login)
 document.querySelectorAll('.close-modal').forEach(button => {
     button.addEventListener('click', (e) => {
         const modalId = e.target.closest('.modal').id;
@@ -117,8 +120,6 @@ if (registrationForm) {
     registrationForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         console.log("Evento 'submit' del formulario de registro disparado.");
-        // Removida la alerta de "Intentando inscribir..." para una experiencia más fluida
-        // alert("Intentando inscribir...");
 
         registrationMessage.textContent = 'Inscribiendo...';
         registrationMessage.className = 'text-center mt-4 text-lg font-medium text-gray-700';
@@ -129,13 +130,10 @@ if (registrationForm) {
         try {
             const jsonData = JSON.stringify(data);
             console.log("Datos del formulario convertidos a JSON:", jsonData);
-            // Removida la alerta de "Enviando datos a Apps Script..."
-            // alert("Enviando datos a Apps Script...");
 
             google.script.run
                 .withSuccessHandler(response => {
                     console.log("Respuesta de Apps Script (Éxito):", response);
-                    alert("Inscripción exitosa (o mensaje de Apps Script): " + response.message); // Mantener esta alerta para feedback crucial
 
                     if (response.success) {
                         registrationMessage.textContent = response.message;
@@ -348,8 +346,8 @@ if (startQuizBtn) {
     startQuizBtn.addEventListener('click', () => {
         if (!currentUserEmail) {
             alert('Debes iniciar sesión para comenzar un quiz.');
-            hideModal(profileModal); // Oculta el modal actual si está abierto
-            showModal(loginModal); // Muestra el modal de login si no hay usuario logueado
+            hideModal(profileModal);
+            showModal(loginModal);
             return;
         }
         renderQuiz();
@@ -372,6 +370,14 @@ if (closeResultBtn) {
     closeResultBtn.addEventListener('click', () => {
         hideModal(resultModal);
         showModal(profileModal); // Volver al perfil
+    });
+}
+
+// Manejo del botón "Volver al Perfil" en el modal de resultados
+if (returnToProfileBtn) { // Asegurarse de que este if esté presente
+    returnToProfileBtn.addEventListener('click', () => {
+        hideModal(resultModal);
+        showModal(profileModal);
     });
 }
 
@@ -440,7 +446,7 @@ if (quizForm) {
                     quizMessage.className = 'text-center mt-4 text-lg font-medium text-red-700';
                     console.error('Error de Apps Script al guardar resultados:', error);
                 })
-                .saveQuizResult(jsonResultData); // Enviamos la cadena JSON
+                .saveQuizResult(jsonResultData);
         } catch (error) {
             quizMessage.textContent = `Error inesperado: ${error.message}.`;
             quizMessage.className = 'text-center mt-4 text-lg font-medium text-red-700';
@@ -453,4 +459,23 @@ if (quizForm) {
 window.onload = () => {
     // No se llama a showModal aquí. La página se carga limpia.
     // Los modales se activarán solo por interacción del usuario con los botones.
+    // Script para el botón de scroll a cursos (mejor que esté aquí para asegurar que el DOM está cargado)
+    const scrollToCoursesBtn = document.getElementById('scrollToCourses');
+    if (scrollToCoursesBtn) {
+        scrollToCoursesBtn.addEventListener('click', function() {
+            document.getElementById('courses').scrollIntoView({
+                behavior: 'smooth'
+            });
+        });
+    }
 };
+
+// Función para alternar visibilidad de contraseña (la tenías en index.html, es mejor moverla aquí)
+function togglePasswordVisibility(id) {
+    const passwordInput = document.getElementById(id);
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+    } else {
+        passwordInput.type = 'password';
+    }
+}
